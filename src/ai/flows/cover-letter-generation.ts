@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -18,7 +19,7 @@ const CoverLetterInputSchema = z.object({
 export type CoverLetterInput = z.infer<typeof CoverLetterInputSchema>;
 
 const CoverLetterOutputSchema = z.object({
-  coverLetter: z.string().describe('The generated cover letter.'),
+  coverLetter: z.string().describe('The complete text of the generated cover letter. This string should start directly with the letter content (e.g., "Dear Hiring Manager,...") and should not include any introductory labels like "Cover Letter:".'),
 });
 export type CoverLetterOutput = z.infer<typeof CoverLetterOutputSchema>;
 
@@ -34,11 +35,15 @@ const prompt = ai.definePrompt({
 
   Based on the provided adapted CV and job description, write a compelling cover letter.
   The cover letter should be tailored to highlight the most relevant skills and experience from the CV that align with the job description.
+  The response for the 'coverLetter' field should be the full text of the letter itself.
 
-  Adapted CV: {{{adaptedCv}}}
-  Job Description: {{{jobDescription}}}
+  Adapted CV:
+  {{{adaptedCv}}}
 
-  Cover Letter:`, // Removed the handlebars expression that outputs the cover letter
+  Job Description:
+  {{{jobDescription}}}
+
+  Content for 'coverLetter' field:`, // Removed the handlebars expression that outputs the cover letter
 });
 
 const generateCoverLetterFlow = ai.defineFlow(
