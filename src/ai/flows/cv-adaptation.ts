@@ -19,7 +19,7 @@ const AdaptCvInputSchema = z.object({
 export type AdaptCvInput = z.infer<typeof AdaptCvInputSchema>;
 
 const AdaptCvOutputSchema = z.object({
-  adaptedCv: z.string().describe('The adapted CV tailored to the job description. This should be a complete CV, adapting all relevant sections from the original CV. If present, the summary should align with the target job role and highlight no more than one primary role. The Skills section should be tailored to the job description. The Work Experience section should be concise, featuring a maximum of 3 most relevant work experiences (each with a maximum of 3 bullet points). The entire output should not contain any placeholder text and should not omit sections from the original CV unless they are entirely irrelevant to the job description after adaptation.'),
+  adaptedCv: z.string().describe('The adapted CV tailored to the job description. This should be a complete CV, adapting all relevant sections from the original CV. If present, the summary should align with the target job role and highlight no more than one primary role. The Skills section should be tailored to the job description. The Work Experience section should be concise, featuring a maximum of 3 most relevant work experiences (each with a maximum of 3 bullet points). The entire output should not contain any placeholder text (especially for links) and should not omit sections from the original CV unless they are entirely irrelevant to the job description after adaptation.'),
 });
 export type AdaptCvOutput = z.infer<typeof AdaptCvOutputSchema>;
 
@@ -47,7 +47,8 @@ Follow these critical instructions for the "adaptedCv" output:
     c.  For each selected work experience, write a maximum of three (3) concise and impactful bullet points. These bullet points should highlight achievements and responsibilities that directly relate to the requirements in the Job Description.
 5.  For all other sections found in the Original CV (e.g., Contact Information, Education, Projects, Certifications, etc.), adapt their content to be relevant and concise for the target job.
 6.  Ensure all information in the "adaptedCv" is concise and impactful, directly supporting the application for the target job.
-7.  The entire "adaptedCv" output must be the complete, ready-to-use CV content. Do not include any placeholders, introductory labels (like "Adapted CV:"), or instructional text.
+7.  The entire "adaptedCv" output must be the complete, ready-to-use CV content. Do not include any introductory labels (like "Adapted CV:").
+8.  Critically, the "adaptedCv" must not contain any placeholder text, especially for links. If the Original CV contains placeholders like '[Portfolio Link]', '[Your Website]', or similar, and the actual URL cannot be determined from the provided CV text, then omit the link or the section containing it to ensure the adapted CV is clean and ready to use. Do not invent URLs or reproduce placeholders for links from the original CV.
 
 Original CV:
 {{{cv}}}

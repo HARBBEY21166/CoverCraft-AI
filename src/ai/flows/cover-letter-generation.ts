@@ -19,7 +19,7 @@ const CoverLetterInputSchema = z.object({
 export type CoverLetterInput = z.infer<typeof CoverLetterInputSchema>;
 
 const CoverLetterOutputSchema = z.object({
-  coverLetter: z.string().describe('The complete text of the generated cover letter. This string should start directly with the letter content (e.g., "Dear Hiring Manager,...") and should not include any introductory labels like "Cover Letter:".'),
+  coverLetter: z.string().describe('The complete text of the generated cover letter. This string should start directly with the letter content (e.g., "Dear Hiring Manager,...") and should not include any introductory labels like "Cover Letter:". It must also not contain any placeholder text for information like portfolio links; if such information is not available in the adapted CV, it should be omitted from the cover letter.'),
 });
 export type CoverLetterOutput = z.infer<typeof CoverLetterOutputSchema>;
 
@@ -37,13 +37,15 @@ const prompt = ai.definePrompt({
   The cover letter should be tailored to highlight the most relevant skills and experience from the CV that align with the job description.
   The response for the 'coverLetter' field should be the full text of the letter itself.
 
+  Important: When writing the cover letter, if you choose to mention a portfolio or personal website, you must only include a link if a full, valid, and complete URL for it is explicitly present in the 'Adapted CV' text. Do not invent URLs or use any form of placeholder text for links (e.g., '[Your Portfolio Link]', '[available at ... placeholder ...]', etc.). If a specific, complete link is not found in the adapted CV, then do not reference a portfolio link in the cover letter.
+
   Adapted CV:
   {{{adaptedCv}}}
 
   Job Description:
   {{{jobDescription}}}
 
-  Content for 'coverLetter' field:`, // Removed the handlebars expression that outputs the cover letter
+  Content for 'coverLetter' field:`,
 });
 
 const generateCoverLetterFlow = ai.defineFlow(
