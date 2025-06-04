@@ -1,3 +1,4 @@
+
 // src/ai/flows/cv-adaptation.ts
 'use server';
 /**
@@ -18,7 +19,7 @@ const AdaptCvInputSchema = z.object({
 export type AdaptCvInput = z.infer<typeof AdaptCvInputSchema>;
 
 const AdaptCvOutputSchema = z.object({
-  adaptedCv: z.string().describe('The adapted CV tailored to the job description. This should be concise, featuring a maximum of 3 most relevant work experiences, each with a maximum of 3 bullet points. It should not contain any placeholder text.'),
+  adaptedCv: z.string().describe('The adapted CV tailored to the job description. This should be a complete CV, concise, featuring a maximum of 3 most relevant work experiences (each with a maximum of 3 bullet points), and should not contain any placeholder text.'),
 });
 export type AdaptCvOutput = z.infer<typeof AdaptCvOutputSchema>;
 
@@ -30,13 +31,16 @@ const adaptCvPrompt = ai.definePrompt({
   name: 'adaptCvPrompt',
   input: {schema: AdaptCvInputSchema},
   output: {schema: AdaptCvOutputSchema},
-  prompt: `You are an expert resume writer. Your task is to adapt the Original CV to the provided Job Description.
+  prompt: `You are an expert resume writer. Your task is to adapt the Original CV to the provided Job Description, creating a complete and tailored resume.
 
 Follow these critical instructions for the "adaptedCv" output:
-1.  Identify the most relevant skills and experiences from the Original CV that match the Job Description.
-2.  Select a maximum of the three (3) most relevant work experiences from the Original CV to include. If there are more than three, prioritize those that best align with the Job Description.
-3.  For each selected work experience, write a maximum of three (3) concise and impactful bullet points. These bullet points should highlight achievements and responsibilities that directly relate to the requirements in the Job Description.
-4.  The entire "adaptedCv" output must be the complete, ready-to-use CV content. Do not include any placeholders, introductory labels (like "Adapted CV:"), or instructional text. Focus on making every word count.
+1.  The "adaptedCv" should be a complete and professional resume, drawing relevant information from the Original CV. This includes sections like Contact Information, Summary/Objective (if present and relevant), Skills, Work Experience, and Education. Adapt these sections to align with the Job Description.
+2.  For the "Work Experience" section specifically:
+    a.  Identify the most relevant skills and experiences from the Original CV that match the Job Description.
+    b.  Select a maximum of the three (3) most relevant work experiences from the Original CV to include. If there are more than three, prioritize those that best align with the Job Description.
+    c.  For each selected work experience, write a maximum of three (3) concise and impactful bullet points. These bullet points should highlight achievements and responsibilities that directly relate to the requirements in the Job Description.
+3.  Ensure all information in the "adaptedCv" is concise and impactful, directly supporting the application for the target job.
+4.  The entire "adaptedCv" output must be the complete, ready-to-use CV content. Do not include any placeholders, introductory labels (like "Adapted CV:"), or instructional text.
 
 Original CV:
 {{{cv}}}
@@ -58,3 +62,4 @@ const adaptCvFlow = ai.defineFlow(
     return output!;
   }
 );
+
