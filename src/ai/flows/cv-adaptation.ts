@@ -19,7 +19,7 @@ const AdaptCvInputSchema = z.object({
 export type AdaptCvInput = z.infer<typeof AdaptCvInputSchema>;
 
 const AdaptCvOutputSchema = z.object({
-  adaptedCv: z.string().describe('The adapted CV tailored to the job description. This should be a complete CV, including relevant sections like Contact Information, Summary/Objective, Skills, Work Experience, and Education. The summary should align with the target job role and highlight no more than one primary role. The Work Experience section should be concise, featuring a maximum of 3 most relevant work experiences (each with a maximum of 3 bullet points). The entire output should not contain any placeholder text.'),
+  adaptedCv: z.string().describe('The adapted CV tailored to the job description. This should be a complete CV, including relevant sections like Contact Information, Summary/Objective, Skills, Work Experience, and Education. The summary should align with the target job role and highlight no more than one primary role. The Skills section should be tailored to the job description. The Work Experience section should be concise, featuring a maximum of 3 most relevant work experiences (each with a maximum of 3 bullet points). The entire output should not contain any placeholder text.'),
 });
 export type AdaptCvOutput = z.infer<typeof AdaptCvOutputSchema>;
 
@@ -38,12 +38,15 @@ Follow these critical instructions for the "adaptedCv" output:
 2.  For the "Summary/Objective" section specifically:
     a.  Ensure it is strongly aligned with the target job role outlined in the Job Description.
     b.  It should highlight no more than one primary job role or professional focus.
-3.  For the "Work Experience" section specifically:
+3.  For the "Skills" section specifically:
+    a.  Identify and list skills from the Original CV that are most relevant to the Job Description.
+    b.  Ensure this section is clearly aligned with the requirements and keywords found in the Job Description.
+4.  For the "Work Experience" section specifically:
     a.  Identify the most relevant skills and experiences from the Original CV that match the Job Description.
     b.  Select a maximum of the three (3) most relevant work experiences from the Original CV to include. If there are more than three, prioritize those that best align with the Job Description.
     c.  For each selected work experience, write a maximum of three (3) concise and impactful bullet points. These bullet points should highlight achievements and responsibilities that directly relate to the requirements in the Job Description.
-4.  Ensure all information in the "adaptedCv" is concise and impactful, directly supporting the application for the target job.
-5.  The entire "adaptedCv" output must be the complete, ready-to-use CV content. Do not include any placeholders, introductory labels (like "Adapted CV:"), or instructional text.
+5.  Ensure all information in the "adaptedCv" is concise and impactful, directly supporting the application for the target job.
+6.  The entire "adaptedCv" output must be the complete, ready-to-use CV content. Do not include any placeholders, introductory labels (like "Adapted CV:"), or instructional text.
 
 Original CV:
 {{{cv}}}
