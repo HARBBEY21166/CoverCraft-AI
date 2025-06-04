@@ -1,9 +1,11 @@
+
 "use client";
 
 import { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import jsPDF from "jspdf";
 
 // ShadCN UI
 import { Button } from "@/components/ui/button";
@@ -14,7 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
 // Lucide Icons
-import { Sparkles, Download, Loader2, FileText, Briefcase, ClipboardCopy } from "lucide-react";
+import { Sparkles, Download, Loader2, FileText, Briefcase, ClipboardCopy, ExternalLink } from "lucide-react";
 
 // AI functions
 import { adaptCv, type AdaptCvInput, type AdaptCvOutput } from "@/ai/flows/cv-adaptation";
@@ -90,16 +92,30 @@ export default function CoverCraftPage() {
     }
   };
 
-  const downloadTextFile = (content: string, filename: string) => {
+  const downloadPdfFile = (content: string, filename: string) => {
     if (typeof window === "undefined") return;
-    const element = document.createElement("a");
-    const file = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    element.href = URL.createObjectURL(file);
-    element.download = filename;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    URL.revokeObjectURL(element.href);
+    const doc = new jsPDF();
+    const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+    const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+    const margin = 15; // mm
+    const maxLineWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    // Set font size (default is 16, which is a bit large)
+    doc.setFontSize(12);
+
+    const lines = doc.splitTextToSize(content, maxLineWidth);
+
+    lines.forEach((line: string) => {
+      if (y + 10 > pageHeight - margin) { // 10 is an arbitrary line height, adjust as needed
+        doc.addPage();
+        y = margin;
+      }
+      doc.text(line, margin, y);
+      y += 7; // Adjust line spacing as needed (e.g. 7 for 12pt font)
+    });
+    
+    doc.save(filename);
     toast({ title: "Downloaded", description: `${filename} has been downloaded.` });
   };
 
@@ -223,8 +239,10 @@ export default function CoverCraftPage() {
                       <Button variant="outline" size="sm" onClick={() => copyToClipboard(adaptedCvText, "Adapted CV")} className="rounded-md">
                         <ClipboardCopy className="mr-1.5 h-4 w-4" /> Copy
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => downloadTextFile(adaptedCvText, "adapted_cv.txt")} className="rounded-md">
-                        <Download className="mr-1.5 h-4 w-4" /> Download
+                      <Button variant="outline" size="sm" asChild className="rounded-md">
+                        <a href="https://resume-architect-eight.vercel.app/" target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="mr-1.5 h-4 w-4" /> Open Resume Architect
+                        </a>
                       </Button>
                     </div>
                   </div>
@@ -251,8 +269,8 @@ export default function CoverCraftPage() {
                        <Button variant="outline" size="sm" onClick={() => copyToClipboard(coverLetterText, "Cover Letter")} className="rounded-md">
                          <ClipboardCopy className="mr-1.5 h-4 w-4" /> Copy
                        </Button>
-                       <Button variant="outline" size="sm" onClick={() => downloadTextFile(coverLetterText, "cover_letter.txt")} className="rounded-md">
-                         <Download className="mr-1.5 h-4 w-4" /> Download
+                       <Button variant="outline" size="sm" onClick={() => downloadPdfFile(coverLetterText, "cover_letter.pdf")} className="rounded-md">
+                         <Download className="mr-1.5 h-4 w-4" /> Download PDF
                        </Button>
                      </div>
                    </div>
