@@ -16,7 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
 // Lucide Icons
-import { Sparkles, Download, Loader2, FileText, Briefcase, ClipboardCopy, ExternalLink } from "lucide-react";
+import { Sparkles, Download, Loader2, FileText, Briefcase, ClipboardCopy, ExternalLink, Eraser } from "lucide-react";
 
 // AI functions
 import { adaptCv, type AdaptCvInput, type AdaptCvOutput } from "@/ai/flows/cv-adaptation";
@@ -101,18 +101,17 @@ export default function CoverCraftPage() {
     const maxLineWidth = pageWidth - margin * 2;
     let y = margin;
 
-    // Set font size (default is 16, which is a bit large)
     doc.setFontSize(12);
 
     const lines = doc.splitTextToSize(content, maxLineWidth);
 
     lines.forEach((line: string) => {
-      if (y + 10 > pageHeight - margin) { // 10 is an arbitrary line height, adjust as needed
+      if (y + 10 > pageHeight - margin) { 
         doc.addPage();
         y = margin;
       }
       doc.text(line, margin, y);
-      y += 7; // Adjust line spacing as needed (e.g. 7 for 12pt font)
+      y += 7; 
     });
     
     doc.save(filename);
@@ -131,6 +130,17 @@ export default function CoverCraftPage() {
       console.error('Failed to copy: ', err);
       toast({ title: "Error", description: `Failed to copy ${label}.`, variant: "destructive" });
     }
+  };
+
+  const handleClearInputs = () => {
+    form.reset({ originalCv: "", jobDescription: "" });
+    setAdaptedCvText("");
+    setCoverLetterText("");
+    setError(null);
+    toast({
+      title: "Inputs Cleared",
+      description: "The form and generated content have been cleared.",
+    });
   };
 
   return (
@@ -212,14 +222,18 @@ export default function CoverCraftPage() {
               </Alert>
             )}
 
-            <div className="flex justify-center pt-4">
-              <Button type="submit" size="lg" disabled={isLoading} className="min-w-[260px] text-base shadow-lg rounded-md transition-all hover:shadow-xl active:scale-95">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
+              <Button type="submit" size="lg" disabled={isLoading} className="w-full sm:w-auto min-w-[260px] text-base shadow-lg rounded-md transition-all hover:shadow-xl active:scale-95">
                 {isLoading ? (
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 ) : (
                   <Sparkles className="mr-2 h-5 w-5" />
                 )}
                 {isLoading ? "Crafting Your Documents..." : "Generate Tailored Documents"}
+              </Button>
+              <Button type="button" variant="outline" size="lg" onClick={handleClearInputs} disabled={isLoading} className="w-full sm:w-auto min-w-[200px] text-base shadow-lg rounded-md transition-all hover:shadow-xl active:scale-95">
+                <Eraser className="mr-2 h-5 w-5" />
+                Clear Inputs
               </Button>
             </div>
           </form>
