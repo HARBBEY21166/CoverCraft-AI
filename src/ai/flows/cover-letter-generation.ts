@@ -56,6 +56,29 @@ const generateCoverLetterFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    let coverLetter = output!.coverLetter;
+
+    const links = [
+      "Portfolio: https://abbeyscript.netlify.app",
+      "GitHub: https://github.com/HARBBEY21166",
+      "LinkedIn: https://www.linkedin.com/in/abbey0/",
+    ];
+
+    // Check if links are already present before adding
+    const linksToAdd = links.filter(link => !coverLetter.includes(link.split(': ')[1]));
+
+    if (linksToAdd.length > 0) {
+      // Find a suitable place to add links, preferably near contact info or at the end
+      // A simple approach is to append them to the end if they are not found.
+      // A more sophisticated approach could attempt to insert them into a "Contact Information" section.
+
+      // Append links at the end, separated by newlines
+      coverLetter += "\n\n" + linksToAdd.join("\n");
+    }
+
+    return {
+      coverLetter: coverLetter
+    };
   }
 );
+
