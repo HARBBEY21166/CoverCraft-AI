@@ -1,4 +1,3 @@
-
 // src/ai/flows/cv-adaptation.ts
 'use server';
 /**
@@ -7,6 +6,13 @@
  * - adaptCv - A function that takes a CV and job description as input and returns an adapted CV.
  * - AdaptCvInput - The input type for the adaptCv function.
  * - AdaptCvOutput - The return type for the adaptCv function.
+ * 
+ * Updates for ATS compliance:
+ * 1. Standardized section headers
+ * 2. Explicit keyword mirroring requirement
+ * 3. Improved link handling
+ * 4. Word limit enforcement
+ * 5. Placeholder validation
  */
 
 import {ai} from '@/ai/genkit';
@@ -19,7 +25,7 @@ const AdaptCvInputSchema = z.object({
 export type AdaptCvInput = z.infer<typeof AdaptCvInputSchema>;
 
 const AdaptCvOutputSchema = z.object({
-  adaptedCv: z.string().describe('The adapted CV tailored to the job description. This should be a complete CV, adapting all relevant sections from the original CV. If present, the summary should align with the target job role and highlight no more than one primary role. The Skills section should be tailored to the job description. The Work Experience section should be concise, featuring a maximum of 3 most relevant work experiences (each with a maximum of 3 bullet points). The entire output should not contain any placeholder text (especially for links) and should not omit sections from the original CV unless they are entirely irrelevant to the job description after adaptation.'),
+  adaptedCv: z.string().describe('The adapted CV tailored to the job description. This should be a complete CV, adapting all relevant sections from the original CV. If present, the summary should align with the target job role and highlight no more than one primary role. The Skills section should be tailored to the job description. The Work Experience section should be concise, featuring a maximum of 3 most relevant work experiences (each with a maximum of 3 bullet points). The entire output should not contain any placeholder text and should not omit sections from the original CV unless they are entirely irrelevant to the job description after adaptation.'),
 });
 export type AdaptCvOutput = z.infer<typeof AdaptCvOutputSchema>;
 
@@ -31,24 +37,47 @@ const adaptCvPrompt = ai.definePrompt({
   name: 'adaptCvPrompt',
   input: {schema: AdaptCvInputSchema},
   output: {schema: AdaptCvOutputSchema},
-  prompt: `You are an expert resume writer. Your task is to adapt the Original CV to the provided Job Description, creating a complete and tailored resume.
+  prompt: `You are an expert resume writer. Your task is to adapt the Original CV to the provided Job Description, creating a complete ATS-optimized resume.
 
-Follow these critical instructions for the "adaptedCv" output:
-1.  The "adaptedCv" should be a complete and professional resume. Adapt all sections found in the Original CV to align with the Job Description. Do not omit sections from the Original CV unless their content becomes entirely irrelevant after attempting adaptation to the Job Description.
-2.  If a "Summary/Objective" section is present in the Original CV:
-    a.  Ensure it is strongly aligned with the target job role outlined in the Job Description.
-    b.  It should highlight no more than one primary job role or professional focus.
-3.  If a "Skills" section is present in the Original CV:
-    a.  Identify and list skills from the Original CV that are most relevant to the Job Description.
-    b.  Ensure this section is clearly aligned with the requirements and keywords found in the Job Description.
-4.  If a "Work Experience" section is present in the Original CV:
-    a.  Identify the most relevant skills and experiences from the Original CV that match the Job Description.
-    b.  Select a maximum of the three (3) most relevant work experiences from the Original CV to include. If there are more than three, prioritize those that best align with the Job Description.
-    c.  For each selected work experience, write a maximum of three (3) concise and impactful bullet points. These bullet points should highlight achievements and responsibilities that directly relate to the requirements in the Job Description.
-5.  For all other sections found in the Original CV (e.g., Contact Information, Education, Projects, Certifications, etc.), adapt their content to be relevant and concise for the target job.
-6.  Ensure all information in the "adaptedCv" is concise and impactful, directly supporting the application for the target job.
-7.  The entire "adaptedCv" output must be the complete, ready-to-use CV content. Do not include any introductory labels (like "Adapted CV:").
-8.  Critically, the "adaptedCv" must not contain any placeholder text, especially for links. If the Original CV contains placeholders like '[Portfolio Link]', '[Your Website]', or similar, and the actual URL cannot be determined from the provided CV text, then omit the link or the section containing it to ensure the adapted CV is clean and ready to use. Do not invent URLs or reproduce placeholders for links from the original CV.
+Critical instructions for the "adaptedCv" output:
+1.  Use standardized section headers: "Contact Information", "Summary", "Skills", "Work Experience", "Education", "Certifications", "Interest". Map any non-standard sections from the Original CV to these headers.
+
+2.  If a "Summary" section is present:
+    a.  Align it strongly with the target job role
+    b.  Highlight only one primary role
+    c.  Integrate 3-5 keywords from the Job Description
+
+3.  For the "Skills" section:
+    a.  Prioritize skills mentioned in the Job Description
+    b.  Mirror exact keywords from the Job Description
+    c.  Categorize skills as "Technical", "Professional", or "Certifications" where applicable
+
+4.  For "Work Experience":
+    a.  Include maximum 3 relevant positions (prioritized by JD alignment)
+    b.  Each position: maximum 3 bullet points
+    c.  Start bullet points with strong action verbs
+    d.  Integrate keywords from the Job Description
+    e.  Quantify achievements where possible (e.g., "increased efficiency by 15%")
+
+5.  For other sections (Education, Certifications, etc.):
+    a.  Maintain original information but prioritize JD-relevant content
+    b.  Include completion dates in YYYY-MM format
+
+6.  Link handling rules:
+    a.  PRESERVE valid URLs (https://...)
+    b.  REMOVE placeholders like [Portfolio Link]
+    c.  Never invent URLs
+
+7.  Formatting requirements:
+    a.  Use plain text only (no markdown/HTML)
+    b.  Separate sections with clear headings
+    c.  Use consistent date formats (YYYY-MM)
+    d.  Maximum 700 words total
+
+8.  Content rules:
+    a.  Never include placeholders
+    b.  Never omit Contact Information
+    c.  Never create fictional experiences
 
 Original CV:
 {{{cv}}}
@@ -67,7 +96,32 @@ const adaptCvFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await adaptCvPrompt(input);
-    return output!;
+    
+    // Post-processing validation
+    const result = output!;
+    
+    // 1. Check for placeholders
+    const placeholderRegex = /\[[^\]]+\]/;
+    if (placeholderRegex.test(result.adaptedCv)) {
+      throw new Error("Placeholder detected in adapted CV");
+    }
+    
+    // 2. Validate word count
+    const wordCount = result.adaptedCv.split(/\s+/).length;
+    if (wordCount > 700) {
+      throw new Error(`CV exceeds 700-word limit (${wordCount} words)`);
+    }
+    
+    // 3. Validate required sections
+    const requiredSections = ["Contact Information", "Work Experience", "Skills"];
+    const missingSections = requiredSections.filter(
+      section => !result.adaptedCv.includes(section)
+    );
+    
+    if (missingSections.length > 0) {
+      throw new Error(`Missing required sections: ${missingSections.join(", ")}`);
+    }
+    
+    return result;
   }
 );
-
